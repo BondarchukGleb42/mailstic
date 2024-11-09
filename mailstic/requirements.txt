@@ -24,3 +24,4 @@ catboost==1.2.5
 scikit-learn==1.5.2
 watchdog
 setuptools==75.2.0
+python-slugify==8.0.4

@@ -1,6 +1,5 @@
 from typing import Annotated, List
 
-from pydantic import BaseModel
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +8,7 @@ from lib.db.connection import get_db_session
 from lib.models.qa import QA, QACreate
 from lib.models.thread import Thread
 from lib.models.user import User
+from lib.models.pof import POFCreate
 
 app = FastAPI()
 
@@ -45,7 +45,7 @@ async def signin(
 
 
 @app.get("/qa")
-async def get_all_qa(db: Annotated[AsyncSession, Depends(get_db_session)]) -> List[QA]:
+async def get_qas(db: Annotated[AsyncSession, Depends(get_db_session)]) -> List[QA]:
     query = select(QA)
     found = (await db.execute(query)).scalars()
 
@@ -53,7 +53,17 @@ async def get_all_qa(db: Annotated[AsyncSession, Depends(get_db_session)]) -> Li
 
 
 @app.post("/qa")
-async def add_qa(body: QACreate, db: Annotated[AsyncSession, Depends(get_db_session)]):
+async def create_qa(
+    body: QACreate, db: Annotated[AsyncSession, Depends(get_db_session)]
+):
+    db.add(body)
+    await db.commit()
+
+
+@app.post("/pof")
+async def create_pof(
+    body: POFCreate, db: Annotated[AsyncSession, Depends(get_db_session)]
+):
     db.add(body)
     await db.commit()
 
@@ -66,3 +76,14 @@ async def get_threads(
     entries = res.scalars().all()
 
     return list(entries)
+
+
+# просмотр статы
+# загрузка статы (csv)
+
+# история входящих писем
+
+# точки отказа
+# создать точку отказа
+
+# база знаний
