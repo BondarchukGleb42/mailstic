@@ -1,6 +1,9 @@
 services:
   mariadb:
     image: mariadb:lts
+    profiles:
+      - prod
+      - dev
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       start_period: 10s
@@ -18,4 +21,4 @@ services:
       - mariadb_data:/data/db
 
 volumes:
-  
+  mariadb_data:

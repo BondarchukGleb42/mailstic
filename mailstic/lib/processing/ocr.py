@@ -8,8 +8,9 @@ class SerialNumberOCR:
     """
     Класс для получения текста с изображения с информацией о устройстве
     """
+
     def __init__(self):
-        self.ocr_core = PaddleOCR(use_angle_cls=True, lang='en')
+        self.ocr_core = PaddleOCR(use_angle_cls=True, lang="en")
 
     def get_text_from_img(self, image_path):
         """

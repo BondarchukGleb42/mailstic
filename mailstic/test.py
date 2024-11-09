@@ -1,5 +1,5 @@
 from lib.email.smtp import SMTP
-from lib.email.builder import build_message_from_markdown
+from mailstic.lib.email.message_builder import build_message_from_markdown
 
 smtp = SMTP("mailstic@cfeee1e5e4e00a.ru", "urkhkxxuosptrrip")
 

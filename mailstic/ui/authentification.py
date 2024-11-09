@@ -1,5 +1,5 @@
 import streamlit as st
-from users_managing import add_user, check_user, login_exists
+from mailstic.lib.users_managing import add_user, check_user, login_exists
 
 
 @st.dialog("Регистрация")

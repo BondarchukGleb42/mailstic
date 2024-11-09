@@ -22,9 +22,10 @@ def text_lemmatizing(text):
     if text is None:
         return None
     text = text.replace("\n", " ")
-    text = re.sub('[0-9:,\.!?()-/+*;•$&%]', '', text.lower())
+    text = re.sub("[0-9:,\.!?()-/+*;•$&%]", "", text.lower())
     text = " ".join(
-        [morph.parse(word)[0].normal_form for word in text.split()[:MAX_WORDS_COUNT]])
+        [morph.parse(word)[0].normal_form for word in text.split()[:MAX_WORDS_COUNT]]
+    )
     return text
 
 
@@ -36,5 +37,3 @@ def get_emb_by_modele(text):
     emb = np.mean(all_emb, axis=0)
 
     return emb
-
-
