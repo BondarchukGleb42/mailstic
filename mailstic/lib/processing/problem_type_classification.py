@@ -1,4 +1,4 @@
-from .utils import text_lemmatizing, get_emb_by_modele
+from lib.processing.utils import text_lemmatizing, get_emb_by_modele
 import pickle
 import numpy as np
 from pathlib import Path

@@ -1,23 +1,27 @@
+import os
+from pathlib import Path
 import numpy as np
 import streamlit as st
 import pandas as pd
 import streamlit_antd_components as sac
 import plotly.express as px
+import glob
 import cv2
 import datetime
 import time
-from mailstic.ui.authentification import signin
-from api.message_processing import process_message, generate_answer
-import glob
+from ui.authentification import signin
+from lib.processing.message_processing import process_message, generate_answer
 
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "expanded"
 st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state, layout="wide")
 
-df = pd.read_csv("data/base.csv", index_col=0)
+df = pd.read_csv(
+    os.path.join(Path(__file__).parent, "../lib/processing/data/base.csv"), index_col=0
+)
 
 with st.sidebar:
-    st.image("logo.png")
+    st.image("assets/logo.png")
 
     st.markdown(
         """

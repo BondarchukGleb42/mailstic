@@ -1,8 +1,8 @@
-from .device_type_classification import classify_device_type
-from .problem_type_classification import classify_problem_type
-from .serial_num_extraction import extract_serial_number
-from .ocr import extract_text_from_img
-from .qa_answering import get_recommendation
+from lib.processing.device_type_classification import classify_device_type
+from lib.processing.problem_type_classification import classify_problem_type
+from lib.processing.serial_num_extraction import extract_serial_number
+from lib.processing.ocr import extract_text_from_img
+from lib.processing.qa_answering import get_recommendation
 
 
 def process_message(theme, text, img_path=None):

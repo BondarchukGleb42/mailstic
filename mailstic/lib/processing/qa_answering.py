@@ -1,9 +1,13 @@
 import json
+import os
+from pathlib import Path
 from fuzzywuzzy import fuzz
 import numpy as np
-from .utils import text_lemmatizing
+from lib.processing.utils import text_lemmatizing
 
-qa_base = json.load(open("qa_base.json", "rb"))
+qa_base = json.load(
+    open(os.path.join(Path(__file__).parent, "data/qa_base.json"), "rb")
+)
 
 
 def get_recommendation(text, problem_type):
