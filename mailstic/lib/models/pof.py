@@ -24,4 +24,8 @@ class POF(POFBase, table=True):
 
 
 class POFCreate(POFBase):
+    pass
+
+
+class POFCreateClassifier(POFBase):
     dataset: List[str]

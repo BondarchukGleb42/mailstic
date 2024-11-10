@@ -1,8 +1,11 @@
+from slugify import slugify
+
 from lib.processing.device_type_classification import classify_device_type
 from lib.processing.problem_type_classification import classify_problem_type
 from lib.processing.serial_num_extraction import extract_serial_number
 from lib.processing.ocr import extract_text_from_img
 from lib.processing.qa_answering import get_recommendation
+from lib.api import api
 
 
 def process_message(theme, text, img_path=None, problem_type_model=None):
@@ -124,7 +127,8 @@ def generate_answer(dialogue):
                 for x in dialogue
                 if x["output"]["serial_number"] != "Уточнить"
             ][-1]
-            recommendation = get_recommendation(text, problem_type)
+            qas = api.get(f"/pof/{slugify(problem_type)}/qa").json()
+            recommendation = get_recommendation(qas, text)
             answer = "Нам удалось извлечь все необходимые данные. С вами свяжется специалист технической поддержки в ближайшее время."
             if recommendation is not None:
                 answer += (

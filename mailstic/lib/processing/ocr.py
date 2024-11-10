@@ -8,8 +8,9 @@ class SerialNumberOCR:
     """
     Класс для получения текста с изображения с информацией о устройстве
     """
+
     def __init__(self):
-        self.ocr_core = PaddleOCR(use_angle_cls=True, lang='en')
+        self.ocr_core = PaddleOCR(use_angle_cls=True, lang="en")
 
     def get_text_from_img(self, image_path):
         """
@@ -18,7 +19,9 @@ class SerialNumberOCR:
         :return: весь текст, распознанный на изображении - чтобы в нём найти SN след. алгоритмом
         """
 
+        print("preocr")
         result = self.ocr_core.ocr(image_path, cls=True)
+        print("postocr")
 
         full_text_for_next_stage = ""
 
@@ -34,5 +37,7 @@ ocr = SerialNumberOCR()
 
 
 def extract_text_from_img(img_path):
+    print(img_path)
     res_text = ocr.get_text_from_img(img_path)
+    print(res_text)
     return res_text

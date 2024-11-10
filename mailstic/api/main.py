@@ -10,7 +10,7 @@ from lib.db.connection import get_db_session
 from lib.models.qa import QA, QACreate
 from lib.models.thread import Thread
 from lib.models.user import User
-from lib.models.pof import POF, POFCreate
+from lib.models.pof import POF, POFCreate, POFCreateClassifier
 from lib.processing.few_shot_inference.new_class_processing import add_new_class
 
 app = FastAPI()
@@ -33,7 +33,7 @@ async def delete_qa(id: int, db: Annotated[AsyncSession, Depends(get_db_session)
 @app.post("/pof/{slug}/qa")
 async def create_qa(
     body: QACreate, slug: str, db: Annotated[AsyncSession, Depends(get_db_session)]
-):
+) -> QA:
     query = select(POF).where(POF.slug == slug)
     pof = (await db.execute(query)).scalar()
 
@@ -45,6 +45,9 @@ async def create_qa(
     db.add(qa)
 
     await db.commit()
+    await db.refresh(qa)
+
+    return qa
 
 
 @app.delete("/pof/{slug}")
@@ -58,19 +61,26 @@ async def delete_pof(slug: str, db: Annotated[AsyncSession, Depends(get_db_sessi
     await db.commit()
 
 
+@app.post("/pof/classifier")
+async def create_pof_classifier(body: POFCreateClassifier):
+    slug = slugify(body.name)
+    add_new_class(slug, body.dataset)
+
+
 @app.post("/pof")
 async def create_pof(
     body: POFCreate, db: Annotated[AsyncSession, Depends(get_db_session)]
-):
+) -> POF:
     pof = POF(
         name=body.name,
         slug=slugify(body.name),
     )
 
-    add_new_class(pof.slug, body.dataset)
-
     db.add(pof)
     await db.commit()
+    await db.refresh(pof)
+
+    return pof
 
 
 @app.get("/pof")

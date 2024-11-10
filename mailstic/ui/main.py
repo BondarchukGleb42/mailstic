@@ -1,7 +1,10 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import os
 from pathlib import Path
 import sys
-from dotenv import load_dotenv
 import numpy as np
 import streamlit as st
 import pandas as pd
@@ -10,22 +13,21 @@ import plotly.express as px
 import datetime
 import json
 import glob
-import httpx
 
+from lib.api import api
 from ui.authentification import signin
 from lib.processing.message_processing import process_message, generate_answer
 from lib.processing.few_shot_inference.new_class_processing import add_new_class
 from lib.processing.few_shot_inference.inference import detect_defect_type
 
+
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "expanded"
 st.set_page_config(initial_sidebar_state=st.session_state.sidebar_state, layout="wide")
 
-load_dotenv()
 
 df = pd.read_csv("ui/data/base.csv", index_col=0)
 
-api = httpx.Client(base_url=os.getenv("API_URL"))
 
 with st.sidebar:
     st.image("ui/assets/logo.png")
@@ -104,12 +106,12 @@ elif pages_tree == "Статистика":
         df = df.copy()
     elif selected_df == "Все данные":
         df = pd.concat(
-            [pd.read_csv(f"data/{table}", index_col=0) for table in other_tables],
+            [pd.read_csv(f"ui/data/{table}", index_col=0) for table in other_tables],
             axis=0,
         )
         df.reset_index(inplace=True)
     else:
-        df = pd.read_csv(f"data/{selected_df}", index_col=0)
+        df = pd.read_csv(f"ui/data/{selected_df}", index_col=0)
     df["message_time"] = pd.to_datetime(df["message_time"])
     df.sort_values("message_time", inplace=True)
 
@@ -188,9 +190,9 @@ elif pages_tree == "Тестовое письмо":
 
     if send_button:
         if uploaded_img is not None:
-            with open("tmp.jpeg", "wb") as f:
+            with open(os.path.join(Path(__file__).parent, "tmp.jpeg"), "wb") as f:
                 f.write(uploaded_img.getbuffer())
-            uploaded_img = "tmp.jpeg"
+            uploaded_img = os.path.join(Path(__file__).parent, "tmp.jpeg")
         else:
             uploaded_img = None
 
@@ -243,7 +245,7 @@ elif pages_tree == "Загрузка данных":
     model_names = list(
         map(
             lambda x: x.split("/")[-1],
-            glob.glob("api/few_shot_inference/user_models/*"),
+            glob.glob("lib/processing/few_shot_inference/user_models/*"),
         )
     )
     selected_model = col1.selectbox("Выберите модель", ["Стандартная"] + model_names)
@@ -287,7 +289,15 @@ elif pages_tree == "Загрузка данных":
                 my_bar.progress(
                     k / len(tmp_df), text="Это займёт какое-то время... или нет"
                 )
-                result.append(process_message(r["Тема"], r["Описание"]))
+                result.append(
+                    process_message(
+                        r["Тема"],
+                        r["Описание"],
+                        problem_type_model=(
+                            selected_model if selected_model != "Стандартная" else None
+                        ),
+                    )
+                )
             result = pd.DataFrame(result)
             result.rename(
                 {
@@ -319,7 +329,7 @@ elif pages_tree == "Загрузка данных":
             if not st.session_state.saved_table:
                 if st.button("Сохранить набор данных"):
                     tmp_df_res.to_csv(
-                        f"lib/processing/data/{str(datetime.datetime.now())}.csv"
+                        f"ui/data/{str(datetime.datetime.now().isoformat())}.csv"
                     )
                     st.session_state.saved_table = True
                     st.success(
@@ -384,7 +394,7 @@ elif pages_tree == "База знаний Q&A":
         new_type = st.text_input("Введите название типа отказа")
 
         if st.button("Применить"):
-            api.post("/pof", json={"name": new_type, "dataset": []})
+            api.post("/pof", json={"name": new_type})
             st.rerun()
 
 elif pages_tree == "Настройка типов отказов":
@@ -433,7 +443,7 @@ elif pages_tree == "Настройка типов отказов":
             st.error("Пустое название типа отказа")
         else:
             dataset = [x[0] + " " + x[1] for x in st.session_state.dataset_text]
-            api.post("/pof", json={"name": class_name, "dataset": dataset})
+            api.post("/pof/classifier", json={"name": class_name, "dataset": dataset})
             col1.success("Успешно!")
 
     with col1:
