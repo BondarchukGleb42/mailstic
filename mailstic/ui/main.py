@@ -19,6 +19,7 @@ from ui.authentification import signin
 from lib.processing.message_processing import process_message, generate_answer
 from lib.processing.few_shot_inference.new_class_processing import add_new_class
 from lib.processing.few_shot_inference.inference import detect_defect_type
+from lib.processing.serial_num_extraction import extract_serial_number_by_patterns
 
 
 if "sidebar_state" not in st.session_state:
@@ -469,25 +470,30 @@ elif pages_tree == "Настройка типов отказов":
                 pred = process_message(theme, text)["problem_type"]
             st.write(f"Предсказанная точка отказа: **{pred}**")
 
-elif pages_tree == "Входящие письма":
-    mails_example = json.load(open("mails_example.json", "r"))
-    st.markdown("#### Тут можно посмотреть на диспетчерскую линию и прочитать обработанные письма")
-    st.write("Письма были отправлены на почтовый адрес *blabla@mail.ru*")
+elif pages_tree == "Настройка серийных номеров":
+    st.markdown("### Добавление новых видов серийных номеров")
+    st.write("В этом разделе можно добавить новые виды серийных номеров с помощью конструктора правил.")
+    st.markdown("**Методология создания правил для извлечения серийных номеров**")
+    st.markdown('''Вы можете задать любую последовательность символов, используя следующие спец. символы для формирования правил:
+**после ! знака**:
+- **E/e** - английская строчная/заглавная буква
+- **R/r** - русская строчная/заглавная буквы
+- **D** - цифра
 
-    for sender, data in mails_example.items():
-        with st.container(border=True):
-            st.write(f"Адресант: **{sender}**")
-            col11, col12, col13 = st.columns((3, 3, 3))
-            res = data["result"]["data"]
-            device, problem_type, serial_num = res["device"], res["problem_type"], res["serial_number"]
-            col11.write(f"Устройство: **{device}**")
-            col12.write(f"Тип проблемы: **{problem_type}**")
-            col13.write(f"Серийный номер: **{serial_num}**")
-
-            col1, col2 = st.columns((6, 4))
-            for mail in data["dialogue"]:
-                with col1.chat_message("user"):
-                    st.write("**Тема**")
-                    st.write(mail["mail"]["theme"])
-                    st.write("**Сообщение**")
-                    st.write(mail["mail"]["text"])
+после **e/E/r/R** может стоять **|** сразу после - регистр не важен  
+Обратите внимание, что пробелы (в том числе в конце выражения) тоже учитываются!  
+ 
+*например*:  
+    !E!E!E_!D!D!D  &emsp;&emsp; &emsp;&emsp;&emsp;&emsp;  <три заглавных английских буквы>_<три цифры>  
+    !R!R!R_!D!D!D!D  &emsp;&emsp; &emsp;&emsp;&emsp;&emsp;  <три заглавных русских буквы>_<четыре цифры>  
+    !R|_!D   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   <заглавная русская>_<любая цифра>  
+''')
+    col1, col2 = st.columns((4, 6))
+    reg = col1.text_input("Введите новое правило", "!E!E!E_!D!D!D!D")
+    numbers = col2.text_area("Введите текст с серийными номерами для теста", "Вот такой вот текст обращеия раз два три RUC_1825")
+    if col1.button("Применить"):
+        res = extract_serial_number_by_patterns(numbers, patterns=[reg])
+        if len(res) == 0:
+            col1.write(":red[Не удалось найти ни одного серийного номера]")
+        else:
+            col1.markdown(f"Обнаружены серийные номера: {', '.join(['**' + x + '**' for x in list(res)])}")
