@@ -17,10 +17,7 @@ if TYPE_CHECKING:
 
 class MessageBase(SQLModel):
     text: str = Field(sa_column=Column(Text, nullable=False))
-    image: Optional[bytes] = Field(
-        sa_column=LargeBinary,
-        default=None,
-    )
+    image: Optional[str] = Field(sa_column=Column(String(1024), default=None))
 
 
 class Message(MessageBase, table=True):

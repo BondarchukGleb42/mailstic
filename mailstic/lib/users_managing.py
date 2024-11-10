@@ -6,6 +6,17 @@ db_path = "lib/users.db"
 
 
 def add_user(login, password):
+    """
+    Добавляет нового пользователя в базу данных с указанным логином и паролем.
+
+    Args:
+        login (str): Логин пользователя.
+        password (str): Пароль пользователя.
+
+    Returns:
+        None
+    """
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -22,6 +33,20 @@ def add_user(login, password):
 
 
 def check_user(login, password):
+    """
+    Проверяет данные пользователя (логин и пароль) в базе данных.
+
+    Args:
+        login (str): Логин пользователя.
+        password (str): Пароль пользователя.
+
+    Returns:
+        int: Код результата проверки:
+            0 — пользователя не существует,
+            1 — пароль неверный,
+            2 — данные верные.
+    """
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -39,6 +64,16 @@ def check_user(login, password):
 
 
 def login_exists(login):
+    """
+    Проверяет, существует ли пользователь с указанным логином.
+
+    Args:
+        login (str): Логин пользователя.
+
+    Returns:
+        bool: True, если логин существует в базе данных, иначе False.
+    """
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -51,6 +86,18 @@ def login_exists(login):
 
 
 def add_user_audio(login, audio_hash, created_at):
+    """
+    Добавляет информацию о звуковом файле пользователя в базу данных.
+
+    Args:
+        login (str): Логин пользователя.
+        audio_hash (str): Хеш аудиофайла.
+        created_at (str): Время создания записи.
+
+    Returns:
+        None
+    """
+
     conn = sqlite3.connect("audios.db")
     cursor = conn.cursor()
 
@@ -67,6 +114,16 @@ def add_user_audio(login, audio_hash, created_at):
 
 
 def get_audio_hashes_by_login(login):
+    """
+    Извлекает хеши аудиофайлов и время их создания для указанного пользователя.
+
+    Args:
+        login (str): Логин пользователя.
+
+    Returns:
+        list[tuple[str, str]]: Список кортежей (audio_hash, created_at).
+    """
+
     conn = sqlite3.connect("audios.db")
     cursor = conn.cursor()
 
@@ -83,6 +140,20 @@ def get_audio_hashes_by_login(login):
 
 
 def add_score(audio_hash, r_score, g_score, speed_score, total_score):
+    """
+    Добавляет информацию о баллах для аудиофайла в базу данных.
+
+    Args:
+        audio_hash (str): Хеш аудиофайла.
+        r_score (int): Балл за правильность.
+        g_score (int): Балл за грамотность.
+        speed_score (int): Балл за скорость.
+        total_score (int): Общий балл.
+
+    Returns:
+        None
+    """
+
     conn = sqlite3.connect("scores.db")
     cursor = conn.cursor()
 
@@ -99,6 +170,17 @@ def add_score(audio_hash, r_score, g_score, speed_score, total_score):
 
 
 def get_score_by_audio_hash(audio_hash):
+    """
+    Извлекает баллы для аудиофайла по его хешу.
+
+    Args:
+        audio_hash (str): Хеш аудиофайла.
+
+    Returns:
+        dict[str, int] | None: Словарь с баллами (r_score, g_score, speed_score, total_score),
+        если хеш существует в базе данных, иначе None.
+    """
+
     conn = sqlite3.connect("scores.db")
     cursor = conn.cursor()
 
@@ -126,6 +208,16 @@ def get_score_by_audio_hash(audio_hash):
 
 
 def clear_table(table_name):
+    """
+     Очищает таблицу в базе данных.
+
+     Args:
+         table_name (str): Имя таблицы, которую необходимо очистить.
+
+     Returns:
+         None
+     """
+
     conn = sqlite3.connect(table_name)
     cursor = conn.cursor()
 
@@ -139,6 +231,17 @@ def clear_table(table_name):
 
 
 def delete_audio_by_hash_and_login(audio_hash, login):
+    """
+    Удаляет запись о звуковом файле по хешу и логину пользователя.
+
+    Args:
+        audio_hash (str): Хеш аудиофайла.
+        login (str): Логин пользователя.
+
+    Returns:
+        None
+    """
+
     conn = sqlite3.connect("audios.db")
     cursor = conn.cursor()
 

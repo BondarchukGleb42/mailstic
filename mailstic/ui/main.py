@@ -468,3 +468,26 @@ elif pages_tree == "Настройка типов отказов":
             else:
                 pred = process_message(theme, text)["problem_type"]
             st.write(f"Предсказанная точка отказа: **{pred}**")
+
+elif pages_tree == "Входящие письма":
+    mails_example = json.load(open("mails_example.json", "r"))
+    st.markdown("#### Тут можно посмотреть на диспетчерскую линию и прочитать обработанные письма")
+    st.write("Письма были отправлены на почтовый адрес *blabla@mail.ru*")
+
+    for sender, data in mails_example.items():
+        with st.container(border=True):
+            st.write(f"Адресант: **{sender}**")
+            col11, col12, col13 = st.columns((3, 3, 3))
+            res = data["result"]["data"]
+            device, problem_type, serial_num = res["device"], res["problem_type"], res["serial_number"]
+            col11.write(f"Устройство: **{device}**")
+            col12.write(f"Тип проблемы: **{problem_type}**")
+            col13.write(f"Серийный номер: **{serial_num}**")
+
+            col1, col2 = st.columns((6, 4))
+            for mail in data["dialogue"]:
+                with col1.chat_message("user"):
+                    st.write("**Тема**")
+                    st.write(mail["mail"]["theme"])
+                    st.write("**Сообщение**")
+                    st.write(mail["mail"]["text"])

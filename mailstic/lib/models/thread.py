@@ -30,6 +30,7 @@ class ThreadStatus(enum.Enum):
 
 
 class ThreadBase(SQLModel):
+    sender: str = Field(sa_column=Column(String(256), nullable=False))
     subject: str = Field(sa_column=Column(String(256), nullable=False))
     status: ThreadStatus = Field(
         sa_column=Column(
@@ -41,6 +42,9 @@ class ThreadBase(SQLModel):
         sa_column=Column(Enum(RecognizeProgress)),
         default=None,
     )
+    device: str = Field(sa_column=Column(String(256), nullable=True))
+    serial: str = Field(sa_column=Column(String(256), nullable=True))
+    problem: str = Field(sa_column=Column(String(256), nullable=True))
 
 
 class Thread(ThreadBase, table=True):

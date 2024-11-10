@@ -15,6 +15,21 @@ svd = pickle.load(open(os.path.join(my_path, "models/problems_type/svd.pickle"),
 
 
 def classify_problem_type(text, problem_type_model=None):
+    """
+    Классифицирует тип проблемы на основе текста.
+
+    Если не передан дополнительный модельный тип (problem_type_model), то используется стандартная модель
+    на основе tf-idf, SVD и эмбеддингов. Если модель передана, используется модель для определения дефекта.
+
+    Args:
+        text (str): Текст, в котором нужно классифицировать тип проблемы.
+        problem_type_model (Optional[str]): Имя модели для классификации типа проблемы. Если не указано,
+        используется стандартная модель.
+
+    Returns:
+        str: Тип проблемы, например, "Материнская плата", или "Уточнить", если уверенность низкая.
+    """
+
     if problem_type_model is None:
         wv2_emb = get_emb_by_modele(text).tolist()
         svd_vec = svd.transform(

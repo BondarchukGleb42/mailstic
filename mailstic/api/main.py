@@ -1,19 +1,96 @@
+import os
 from typing import Annotated, List
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi_utilities import repeat_every
 from slugify import slugify
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from lib.db.connection import get_db_session
-from lib.models.qa import QA, QACreate
-from lib.models.thread import Thread
-from lib.models.user import User
-from lib.models.pof import POF, POFCreate, POFCreateClassifier
+from lib.email.imap import IMAP
 from lib.processing.few_shot_inference.new_class_processing import add_new_class
+from lib.processing.message_processing import generate_answer, process_message
+from lib.models.qa import QA, QACreate
+from lib.models.thread import Thread, ThreadStatus
+from lib.models.message import Message
+from lib.models.pof import POF, POFCreate, POFCreateClassifier
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+@repeat_every(seconds=60)
+async def get_email(db: Annotated[AsyncSession, Depends(get_db_session)]):
+    print("checking out email")
+
+    imap = IMAP(os.getenv("MAIL_EMAIL"), os.getenv("MAIL_PASSWORD"))
+
+    messages = imap.receive()
+    print(f"got {len(messages)} messages")
+
+    for sender, subject, text, img_path in messages:
+        query = select(Thread).where(
+            Thread.status == ThreadStatus.IN_PROGRESS and Thread.sender == sender
+        )
+
+        thread = (await db.execute(query)).scalar()
+
+        if thread is None:
+            thread = Thread(
+                sender=sender, status=ThreadStatus.IN_PROGRESS, subject=subject
+            )
+
+            db.add(thread)
+            await db.commit()
+            await db.refresh(thread)
+
+        print(thread)
+
+        db.add(Message(text=text, image=img_path, thread_id=thread.id))
+        await db.commit()
+
+        query = select(Message).where(Message.thread_id == thread.id)
+        messages = list((await db.execute(query)).scalars())
+
+        print(messages)
+
+        dialogue = [
+            {
+                "mail": {
+                    "theme": thread.subject,
+                    "text": message.text,
+                    "image": message.img_path,
+                },
+                "output": process_message(
+                    thread.subject, message.text, message.img_path
+                ),
+            }
+            for message in messages
+        ]
+
+        print(dialogue)
+
+        answer = generate_answer(dialogue)
+
+        print(answer)
+
+        if answer["completed"]:
+            thread.status = ThreadStatus.SUCCESSFUL
+
+        thread.device = answer["data"]["device"]
+        thread.problem = answer["data"]["problem_type"]
+        thread.serial = answer["data"]["serial_number"]
+        thread.recogize_progress = answer["code"]
+
+        db.add(thread)
+        await db.commit()
+
+    imap.close()
 
 
 @app.get("/health")

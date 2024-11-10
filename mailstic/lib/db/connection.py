@@ -9,8 +9,6 @@ class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
-load_dotenv()
-
 async_engine = create_async_engine(
     f"mariadb+aiomysql://{os.getenv("DB_URI_WITHOUT_PROTO")}", echo=True
 )
