@@ -8,7 +8,7 @@ services:
       timeout: 5s
       retries: 3
     ports:
-      - 127.0.0.1:3306:3306
+      - 3306:3306
     environment:
       - MARIADB_DATABASE=mailstic
       - MARIADB_USER=${MARIADB_USER}
@@ -45,6 +45,11 @@ services:
       dockerfile: dockerfile
     ports:
       - 8000:8000
+    environment:
+      - DB_URI_WITHOUT_PROTO=${DB_URI_WITHOUT_PROTO}
+      - API_URL=${API_URL}
+      - MAIL_EMAIL=${MAIL_EMAIL}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     entrypoint:
       - python3
       - -m
@@ -60,4 +65,4 @@ services:
 volumes:
   mariadb_data:
   user_models:
-  user_datra:
+  user_data:
