@@ -20,5 +20,11 @@ services:
     volumes:
       - mariadb_data:/data/db
 
+
+  api:
+    volumes:
+      - user_models:/app/lib/processing/few_shot_inference/user_models
+
 volumes:
   mariadb_data:
+  user_models:

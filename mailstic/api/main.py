@@ -1,14 +1,17 @@
 from typing import Annotated, List
 
 from fastapi import Depends, FastAPI, HTTPException
+from slugify import slugify
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from lib.db.connection import get_db_session
 from lib.models.qa import QA, QACreate
 from lib.models.thread import Thread
 from lib.models.user import User
-from lib.models.pof import POFCreate
+from lib.models.pof import POF, POFCreate
+from lib.processing.few_shot_inference.new_class_processing import add_new_class
 
 app = FastAPI()
 
@@ -18,45 +21,40 @@ async def health():
     return "ok"
 
 
-@app.post("/signup")
-async def signup(user: User, db: Annotated[AsyncSession, Depends(get_db_session)]):
-    found_query = select(User).where(User.login == user.login)
-    found = (await db.execute(found_query)).scalars().first()
+@app.delete("/qa/{id}")
+async def delete_qa(id: int, db: Annotated[AsyncSession, Depends(get_db_session)]):
+    query = select(QA).where(QA.id == id)
+    qa = (await db.execute(query)).scalar_one()
 
-    if found is not None:
-        raise HTTPException(status_code=400, detail=f"login {user.login} is busy")
+    await db.delete(qa)
+    await db.commit()
 
-    db.add(user)
+
+@app.post("/pof/{slug}/qa")
+async def create_qa(
+    body: QACreate, slug: str, db: Annotated[AsyncSession, Depends(get_db_session)]
+):
+    query = select(POF).where(POF.slug == slug)
+    pof = (await db.execute(query)).scalar()
+
+    if pof is None:
+        raise HTTPException(status_code=404, detail=f"pof {slug} is not exists")
+
+    qa = QA(question=body.question, answer=body.answer, pof_slug=slug)
+
+    db.add(qa)
 
     await db.commit()
 
 
-@app.post("/signin")
-async def signin(
-    user: User, db: Annotated[AsyncSession, Depends(get_db_session)]
-) -> bool:
-    query = select(User).where(User.login == user.login)
-    found = (await db.execute(query)).scalars().first()
+@app.delete("/pof/{slug}")
+async def delete_pof(slug: str, db: Annotated[AsyncSession, Depends(get_db_session)]):
+    query = select(POF).where(POF.slug == slug)
+    pof = (await db.execute(query)).scalar_one()
 
-    if found is None:
-        return False
+    print(pof)
 
-    return found.password == user.password
-
-
-@app.get("/qa")
-async def get_qas(db: Annotated[AsyncSession, Depends(get_db_session)]) -> List[QA]:
-    query = select(QA)
-    found = (await db.execute(query)).scalars()
-
-    return list(found)
-
-
-@app.post("/qa")
-async def create_qa(
-    body: QACreate, db: Annotated[AsyncSession, Depends(get_db_session)]
-):
-    db.add(body)
+    await db.delete(pof)
     await db.commit()
 
 
@@ -64,8 +62,34 @@ async def create_qa(
 async def create_pof(
     body: POFCreate, db: Annotated[AsyncSession, Depends(get_db_session)]
 ):
-    db.add(body)
+    pof = POF(
+        name=body.name,
+        slug=slugify(body.name),
+    )
+
+    add_new_class(pof.slug, body.dataset)
+
+    db.add(pof)
     await db.commit()
+
+
+@app.get("/pof")
+async def get_pofs(db: Annotated[AsyncSession, Depends(get_db_session)]) -> List[POF]:
+    query = select(POF)
+
+    res = list((await db.execute(query)).scalars())
+
+    return res
+
+
+@app.get("/pof/{pof_slug}/qa")
+async def get_pof_qas(
+    pof_slug: str, db: Annotated[AsyncSession, Depends(get_db_session)]
+) -> List[QA]:
+    query = select(QA).where(QA.pof_slug == pof_slug)
+    found = (await db.execute(query)).scalars()
+
+    return list(found)
 
 
 @app.get("/threads")
@@ -82,8 +106,3 @@ async def get_threads(
 # загрузка статы (csv)
 
 # история входящих писем
-
-# точки отказа
-# создать точку отказа
-
-# база знаний

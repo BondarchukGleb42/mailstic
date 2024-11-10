@@ -4,3 +4,4 @@ from .thread import Thread
 from .message import Message
 from .user import User
 from .qa import QA
+from .pof import POF

@@ -1,4 +1,4 @@
-import pymorphy2
+import pymorphy3
 import re
 import pandas as pd
 import numpy as np
@@ -9,7 +9,7 @@ import os
 my_path = Path(__file__).parent
 
 w2v_vec = Word2Vec.load(os.path.join(my_path, "models/wv2_lematized_16.model"))
-morph = pymorphy2.MorphAnalyzer()
+morph = pymorphy3.MorphAnalyzer()
 
 
 def text_lemmatizing(text):
@@ -22,9 +22,10 @@ def text_lemmatizing(text):
     if text is None:
         return None
     text = text.replace("\n", " ")
-    text = re.sub('[0-9:,\.!?()-/+*;•$&%]', '', text.lower())
+    text = re.sub("[0-9:,\.!?()-/+*;•$&%]", "", text.lower())
     text = " ".join(
-        [morph.parse(word)[0].normal_form for word in text.split()[:MAX_WORDS_COUNT]])
+        [morph.parse(word)[0].normal_form for word in text.split()[:MAX_WORDS_COUNT]]
+    )
     return text
 
 
@@ -36,5 +37,3 @@ def get_emb_by_modele(text):
     emb = np.mean(all_emb, axis=0)
 
     return emb
-
-

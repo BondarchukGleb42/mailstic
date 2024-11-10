@@ -1,18 +1,24 @@
 import json
+import os
+from pathlib import Path
 from fuzzywuzzy import fuzz
 import numpy as np
-from .utils import text_lemmatizing
-
-qa_base = json.load(open("qa_base.json", "rb"))
+from lib.processing.utils import text_lemmatizing
 
 
-def get_recommendation(text, problem_type):
-    if problem_type not in list(qa_base.keys()):
-        return None
-    answers = qa_base[problem_type]
+def get_recommendation(qas, text):
     text = text_lemmatizing(text)
-    ratio = [fuzz.partial_ratio(text, text_lemmatizing(answer)) for answer in answers]
+
+    ratio = [
+        fuzz.partial_ratio(
+            text, text_lemmatizing(answer["question"] + " " + answer["answer"])
+        )
+        for answer in qas
+    ]
+
     print("ratios:", ratio)
+
     if max(ratio) >= 45:
-        return answers[np.argmax(ratio)]
+        return qas[np.argmax(ratio)]["answer"]
+
     return None

@@ -1,24 +1,31 @@
+import os
+from pathlib import Path
 import sqlite3
+
+db_path = "lib/users.db"
 
 
 def add_user(login, password):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
         INSERT INTO users (login, password)
         VALUES (?, ?)
-    ''', (login, password))
+    """,
+        (login, password),
+    )
 
     conn.commit()
     conn.close()
 
 
 def check_user(login, password):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute('SELECT password FROM users WHERE login = ?', (login,))
+    cursor.execute("SELECT password FROM users WHERE login = ?", (login,))
     result = cursor.fetchone()
 
     conn.close()
@@ -32,10 +39,10 @@ def check_user(login, password):
 
 
 def login_exists(login):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute('SELECT 1 FROM users WHERE login = ?', (login,))
+    cursor.execute("SELECT 1 FROM users WHERE login = ?", (login,))
     result = cursor.fetchone()
 
     conn.close()
@@ -44,64 +51,75 @@ def login_exists(login):
 
 
 def add_user_audio(login, audio_hash, created_at):
-    conn = sqlite3.connect('audios.db')
+    conn = sqlite3.connect("audios.db")
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
         INSERT INTO users (login, audio_hash, created_at)
         VALUES (?, ?, ?)
-    ''', (login, audio_hash, created_at))
+    """,
+        (login, audio_hash, created_at),
+    )
 
     conn.commit()
     conn.close()
 
 
 def get_audio_hashes_by_login(login):
-    conn = sqlite3.connect('audios.db')
+    conn = sqlite3.connect("audios.db")
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
             SELECT audio_hash, created_at FROM users WHERE login = ?
-        ''', (login,))
+        """,
+        (login,),
+    )
     result = cursor.fetchall()
 
     conn.close()
     return [(row[0], row[1]) for row in result]
 
 
-
 def add_score(audio_hash, r_score, g_score, speed_score, total_score):
-    conn = sqlite3.connect('scores.db')
+    conn = sqlite3.connect("scores.db")
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
         INSERT INTO scores (audio_hash, r_score, g_score, speed_score, total_score)
         VALUES (?, ?, ?, ?, ?)
-    ''', (audio_hash, r_score, g_score, speed_score, total_score))
+    """,
+        (audio_hash, r_score, g_score, speed_score, total_score),
+    )
 
     conn.commit()
     conn.close()
 
 
 def get_score_by_audio_hash(audio_hash):
-    conn = sqlite3.connect('scores.db')
+    conn = sqlite3.connect("scores.db")
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
         SELECT audio_hash, r_score, g_score, speed_score, total_score
         FROM scores
         WHERE audio_hash = ?
-    ''', (audio_hash,))
+    """,
+        (audio_hash,),
+    )
 
     result = cursor.fetchone()
     conn.close()
 
     if result:
         return {
-            'r_score': result[1],
-            'g_score': result[2],
-            'speed_score': result[3],
-            'total_score': result[4]
+            "r_score": result[1],
+            "g_score": result[2],
+            "speed_score": result[3],
+            "total_score": result[4],
         }
     else:
         return None
@@ -112,7 +130,7 @@ def clear_table(table_name):
     cursor = conn.cursor()
 
     try:
-        cursor.execute(f'DELETE FROM users')
+        cursor.execute(f"DELETE FROM users")
     except:
         cursor.execute(f"DELETE FROM scores")
 
@@ -121,13 +139,15 @@ def clear_table(table_name):
 
 
 def delete_audio_by_hash_and_login(audio_hash, login):
-    conn = sqlite3.connect('audios.db')
+    conn = sqlite3.connect("audios.db")
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
         DELETE FROM users WHERE audio_hash = ? AND login = ?
-    ''', (audio_hash, login))
+    """,
+        (audio_hash, login),
+    )
 
     conn.commit()
     conn.close()
-
