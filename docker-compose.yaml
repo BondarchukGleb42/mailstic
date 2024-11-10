@@ -65,4 +65,4 @@ services:
 volumes:
   mariadb_data:
   user_models:
-  user_datra:
+  user_data:
