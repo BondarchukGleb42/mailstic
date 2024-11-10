@@ -45,6 +45,11 @@ services:
       dockerfile: dockerfile
     ports:
       - 8000:8000
+    environment:
+      - DB_URI_WITHOUT_PROTO=${DB_URI_WITHOUT_PROTO}
+      - API_URL=${API_URL}
+      - MAIL_EMAIL=${MAIL_EMAIL}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     entrypoint:
       - python3
       - -m
