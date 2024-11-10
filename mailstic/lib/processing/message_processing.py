@@ -19,6 +19,8 @@ def process_message(theme, text, img_path=None, problem_type_model=None):
         dict: Словарь с данными о типе устройства, типе проблемы и серийном номере.
     """
 
+    print("process_message")
+
     full_text = theme + " " + text
     if img_path is not None:
         ocr_text = extract_text_from_img(img_path)

@@ -5,9 +5,7 @@ from sqlmodel import (
     Field,
     Column,
     Relationship,
-    Integer,
     String,
-    LargeBinary,
     Text,
 )
 
@@ -21,7 +19,7 @@ class MessageBase(SQLModel):
 
 
 class Message(MessageBase, table=True):
-    id: int = Field(Integer, primary_key=True, nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)
 
     thread_id: int = Field(foreign_key="thread.id", nullable=False)
     thread: "Thread" = Relationship(

@@ -21,10 +21,46 @@ services:
       - mariadb_data:/data/db
 
 
-  api:
+  web:
+    build:
+      context: ./mailstic
+      dockerfile: dockerfile
+    ports:
+      - 8501:8501
+    environment:
+      - DB_URI_WITHOUT_PROTO=${DB_URI_WITHOUT_PROTO}
+      - API_URL=${API_URL}
+      - MAIL_EMAIL=${MAIL_EMAIL}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+    entrypoint:
+      - python3
+      - -m
+      - streamlit
+      - run
+      - ui/main.py
     volumes:
       - user_models:/app/lib/processing/few_shot_inference/user_models
+      - user_data:/app/ui/data
+
+  api:
+    build:
+      context: ./mailstic
+      dockerfile: dockerfile
+    ports:
+      - 8000:8000
+    entrypoint:
+      - python3
+      - -m
+      - fastapi
+      - dev
+      - api/main.py
+    volumes:
+      - user_models:/app/lib/processing/few_shot_inference/user_models
+      - user_data:/app/ui/data
+
+  
 
 volumes:
   mariadb_data:
   user_models:
+  user_datra:

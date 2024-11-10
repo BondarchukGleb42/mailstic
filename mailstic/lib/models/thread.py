@@ -48,7 +48,7 @@ class ThreadBase(SQLModel):
 
 
 class Thread(ThreadBase, table=True):
-    id: int = Field(Integer, primary_key=True, nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)
 
     messages: List["Message"] = Relationship(
         back_populates="thread", sa_relationship_kwargs={"lazy": "selectin"}
